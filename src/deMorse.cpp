@@ -3,12 +3,12 @@
 #include "PluggableUSBHID.h"
 #include "USBKeyboard.h"
 
-const int switchPin = 21; // Switch connected to pin 7
+const int switchPin = 21; 
 int switchState = HIGH;  // Current state of the switch
 int prevSwitchState = HIGH; // Previous state of the switch
 unsigned long prevTime = 0; // Time of the last switch state change
 String morseCode = ""; // String to store the Morse code
-boolean pause = false;
+boolean pause = false;  // flag to indicate no input being decoded
 
 unsigned long debounceDelay = 30; // Debounce time in milliseconds
 unsigned long maxDitTime = 150; // after this time, it's a dah
@@ -19,15 +19,17 @@ unsigned long maxCharDelay = 1600; // after this time, it's a space
 USBKeyboard Keyboard;
 
 void setup() {
-  Serial.begin(115200); // Initialize serial communication
-  pinMode(switchPin, INPUT_PULLUP); // Set pin 7 as input with internal pull-up resistor
+  Serial.begin(115200); 
+  pinMode(switchPin, INPUT_PULLUP); 
 }
 
 
+// Generates the USB Keyboard outputs
 void print_keyboard(char s){
   Keyboard.putc(s);
 }
 
+// Outputs raw morse to serial terminal
 void print_serial(){
   Serial.print(morseCode);
   Serial.print("  ");
@@ -35,6 +37,7 @@ void print_serial(){
 return;
 }
 
+// convert raw morse to ASCII
 void DecodeSymbol() {
   static String letters[] = {
     ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-",
@@ -71,19 +74,6 @@ void DecodeSymbol() {
   }
   morseCode = "";
   return;
-}
-
-
-// void DecodeSymbol(){
-//   Serial.print(morseCode);
-//   Serial.print("  ");
-//   morseCode = "";
-//   return;
-// }
-
-
-void sendSymbol(char symbol){
-return;
 }
 
 
