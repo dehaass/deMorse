@@ -1,7 +1,7 @@
 #include <Arduino.h>
-// #include <Wire.h>
-// #include "PluggableUSBHID.h"
-// #include "USBKeyboard.h"
+#include <Wire.h>
+#include "PluggableUSBHID.h"
+#include "USBKeyboard.h"
 
 const int switchPin = 21; // Switch connected to pin 7
 int switchState = HIGH;  // Current state of the switch
@@ -16,9 +16,23 @@ unsigned long maxDahTime = 600; // after this, it's a special control
 unsigned long maxMovementDelay = 300; // after this, it's a new symbol
 unsigned long maxCharDelay = 1600; // after this time, it's a space
 
+USBKeyboard Keyboard;
+
 void setup() {
   Serial.begin(115200); // Initialize serial communication
   pinMode(switchPin, INPUT_PULLUP); // Set pin 7 as input with internal pull-up resistor
+}
+
+
+void print_keyboard(char s){
+  Keyboard.putc(s);
+}
+
+void print_serial(){
+  Serial.print(morseCode);
+  Serial.print("  ");
+
+return;
 }
 
 void DecodeSymbol() {
@@ -26,30 +40,39 @@ void DecodeSymbol() {
     ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-",
     ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", "E"
   };
+  static String numbers[] = {
+    "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "E"
+  };
+
   int i = 0;
   while (letters[i] != "E") {
     if (letters[i] == morseCode) {
-      //print_local((char)('A' + i));
-      Serial.print((char)('A' + i));
+      print_keyboard((char)('A') + i);
+      print_serial();
       break;
     }
     i++;
   }
-  if (letters[i] == "E") {
+
+  i=0;
+  while(numbers[i] != "E"){
+    if (numbers[i] == morseCode) {
+      print_keyboard((char)('0') + i);
+      print_serial();
+      break;
+    }
+    i++;
+  }
+
+  if (numbers[i] == "E") {
     //print_local(morseCode);
-    Serial.print(morseCode);
+    // Serial.print(morseCode);
+    print_serial();
   }
   morseCode = "";
   return;
 }
 
-
-void print_local(){
-  Serial.print(morseCode);
-  Serial.print("  ");
-
-return;
-}
 
 // void DecodeSymbol(){
 //   Serial.print(morseCode);
@@ -71,6 +94,7 @@ void loop() {
   if(switchState == HIGH && pause == false){
     if(movementTime > maxCharDelay){ // must be a space
       morseCode = "|";
+      print_keyboard((char)(' '));
       DecodeSymbol();
       pause = true;
     }else if(movementTime > maxMovementDelay && morseCode != ""){ // character is finished
