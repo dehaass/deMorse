@@ -5,17 +5,27 @@ class MorseCode {
 public:
     const int mode;
     const String morse;
-    const int key_code;
-    const int modifier_keys;
+    const uint8_t key_code;
+    const uint8_t modifier_keys;
     //const char* comment;
 
-    MorseCode(int mode, const String& morse, int key_code, int modifier_keys)
+    MorseCode(int mode, const String& morse, uint8_t key_code, uint8_t modifier_keys)
         : mode(mode), morse(morse), key_code(key_code), modifier_keys(modifier_keys) {}
 };
 
+// class SpecialCode {
+//     public:
+//         const int mode;
+//         const String morse;
+//         const String name;
+
+//     SpecialCode(int mode, const String& morse, const String& name)
+//         : mode(mode), morse(morse), name(name) {}
+// };
+
 
 // Define the global array of MorseCode objects
-const MorseCode codes[] = {
+const MorseCode codes_lookup[] = {
 {1, ".-", 0x04, 0b0010}, //KEY_A
 {1, "-...", 0x05, 0b0000}, //KEY_B
 {1, "-.-.", 0x06, 0b0000}, //KEY_C
@@ -59,7 +69,6 @@ const MorseCode codes[] = {
 {1, ".--..", 0x51, 0b0000}, //KEY_DOWN
 {1, ".-.-..", 0x50, 0b0000}, //KEY_LEFT
 {1, ".-.-.", 0x4f, 0b0000}, //KEY_RIGHT
-{1, "...-.", 0x08, 0b0000}, //KEY_MOD_LMETA
 {1, "---...-", 0x53, 0b0000}, //KEY_NUMLOCK
 {1, "--.-..", 0x47, 0b0000}, //KEY_SCROLLLOCK
 {1, "-----.", 0x39, 0b0000}, //KEY_CAPSLOCK
@@ -67,5 +76,29 @@ const MorseCode codes[] = {
 {1, "-.-..", 0x49, 0b0000}, //KEY_INSERT
 {1, "-.--..", 0x4c, 0b0000} //KEY_DELETE
 };
+
+
+// const SpecialCode special_codes[] = {
+// {1, "..-..", "repeat"},
+// {1, "..-..-", "Hold/Rel"},
+// {1, "...-.", "Toggle MODE"},
+// {2, "...-.", "Toggle MODE"},
+// {2, "-", "m up"},
+// {2, "--", "m dwn"},
+// {2, "...", "m rt"},
+// {2, "..", "m lt"},
+// {2, ".", "repeat"},
+// {2, "...--", "m zoom"},
+// {2, "..---", "double m"},
+// {2, ".-", "mb left"},
+// {2, ".--", "mb right"},
+// {2, "..-", "mb double left"},
+// {2, "..--", "mb double right"},
+// {2, "-.", "mb click&hold left"},
+// {2, "-..", "mb click&hold right"},
+// {2, "-.-.", "Ctrl"},
+// {2, "--.--", "Alt"},
+// {2, "--...-", "Shft"}
+// };
 
 #endif // MORSECODE_H
