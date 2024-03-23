@@ -1,7 +1,11 @@
 #include <Arduino.h>
-#include <Wire.h>
+//#include <Wire.h>
 #include "PluggableUSBHID.h"
 #include "USBKeyboard.h"
+#include "usb_hid_keys.h"
+#include "morse_keys.h"
+
+#define US_KEYBOARD
 
 const int switchPin = 21; 
 int switchState = HIGH;  // Current state of the switch
@@ -25,9 +29,9 @@ void setup() {
 
 
 // Generates the USB Keyboard outputs
-void print_keyboard(char s){
-  Keyboard.putc(s);
-}
+// void print_keyboard(char s){
+//   Keyboard.putc(s);
+// }
 
 // Outputs raw morse to serial terminal
 void print_serial(){
@@ -37,44 +41,67 @@ void print_serial(){
 return;
 }
 
-// convert raw morse to ASCII
-void DecodeSymbol() {
-  static String letters[] = {
-    ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-",
-    ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", "E"
-  };
-  static String numbers[] = {
-    "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "E"
-  };
+void DecodeSymbol(){
 
-  int i = 0;
-  while (letters[i] != "E") {
-    if (letters[i] == morseCode) {
-      print_keyboard((char)('A') + i);
+  for(const auto& code : codes){
+    if(code.morse.equals(morseCode)){
+      Keyboard.key_code_raw(code.key_code, code.modifier_keys);
       print_serial();
-      break;
+      morseCode = "";
+      return;
     }
-    i++;
   }
 
-  i=0;
-  while(numbers[i] != "E"){
-    if (numbers[i] == morseCode) {
-      print_keyboard((char)('0') + i);
-      print_serial();
-      break;
-    }
-    i++;
-  }
-
-  if (numbers[i] == "E") {
-    //print_local(morseCode);
-    // Serial.print(morseCode);
-    print_serial();
-  }
+  print_serial(); // no match found
   morseCode = "";
   return;
 }
+
+// convert raw morse to ASCII
+// void OBSDecodeSymbol() {
+//   static String letters[] = {
+//     ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-",
+//     ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", "E"
+//   };
+//   static String numbers[] = {
+//     "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "E"
+//   };
+//   static String special[] = {
+//     "....."
+//   };
+
+//   int i = 0;
+//   while (letters[i] != "E") {
+//     if (letters[i] == morseCode) {
+//       print_keyboard((char)('A') + i);
+//       print_serial();
+//       break;
+//     }
+//     i++;
+//   }
+
+//   i=0;
+//   while(numbers[i] != "E"){
+//     if (numbers[i] == morseCode) {
+//       print_keyboard((char)('0') + i);
+//       print_serial();
+//       break;
+//     }
+//     i++;
+//   }
+
+//   if(special[0] == morseCode){
+//     Keyboard.key_code_raw(KEY_TAB, KEY_ALT);
+//   }
+
+//   if (numbers[i] == "E") {
+//     //print_local(morseCode);
+//     // Serial.print(morseCode);
+//     print_serial();
+//   }
+//   morseCode = "";
+//   return;
+// }
 
 
 void loop() {
@@ -84,7 +111,8 @@ void loop() {
   if(switchState == HIGH && pause == false){
     if(movementTime > maxCharDelay){ // must be a space
       morseCode = "|";
-      print_keyboard((char)(' '));
+      // print_keyboard((char)(' '));
+      Keyboard.key_code(KEY_SPACE);
       DecodeSymbol();
       pause = true;
     }else if(movementTime > maxMovementDelay && morseCode != ""){ // character is finished
