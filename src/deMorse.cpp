@@ -1,15 +1,22 @@
+/*
+deMorse, a keyboard and mouse emulator that uses a 
+single digital input (e.g. a morse key) to emulate 
+a keyboard and mouse
+
+Stuart de Haas
+*/
+
 #define US_KEYBOARD
 
 #include <Arduino.h>
-//#include <Wire.h>
 #include "PluggableUSBHID.h"
 #include "USBMouseKeyboard.h"
-// #include "USBKeyboard.h"
 //#include "usb_hid_keys.h"
 #include "morse_keys.h"
 
 
 const int switchPin = 21; 
+const int buzzerPin = 20;
 int switchState = HIGH;  // Current state of the switch
 int prevSwitchState = HIGH; // Previous state of the switch
 unsigned long prevTime = 0; // Time of the last switch state change
@@ -63,7 +70,9 @@ int HandleSpecialCode(){
     if( code.mode == MODE && code.morse.equals(morseCode)){
       if(code.name.equals("Toggle MODE")){
         MODE = MODE == 1 ? 2 : 1;
-        Serial.print("Mode is: ");
+        MODE == 1 ? 
+          MouseKeyboard.key_code('w',KEY_CTRL): //Runs AHK script for toast
+          MouseKeyboard.key_code('q',KEY_CTRL);
         Serial.print(MODE);
       }else if(code.name.equals("m up")){
         int dist = (-1)*mouse_dist[mouse_speed];
@@ -141,6 +150,12 @@ void DecodeSymbol(){
 void loop() {
   unsigned long movementTime = millis() - prevTime;
   switchState = digitalRead(switchPin); 
+
+  if(switchState == LOW){
+    digitalWrite(buzzerPin, HIGH);
+  }else{
+    digitalWrite(buzzerPin, LOW);
+  }
 
   if(switchState == HIGH && pause == false){
     if(movementTime > maxCharDelay){ // must be a space
