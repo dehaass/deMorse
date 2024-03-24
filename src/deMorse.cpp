@@ -24,6 +24,8 @@ String morseCode = ""; // String to store the Morse code
 String previousMorse = ""; // History for use with repeat commands and similar
 boolean pause = false;  // flag to indicate no input being decoded
 int MODE = 1;  // Current keyboard layer
+const bool SWITCH_ON = LOW; // These can be changed for a normally high or low switch
+const bool SWITCH_OFF = HIGH;
 
 int mouse_dist[] = {5, 50, 100};
 int mouse_speed = 1;
@@ -41,7 +43,7 @@ USBMouseKeyboard MouseKeyboard;
 
 void setup() {
   Serial.begin(115200); 
-  pinMode(switchPin, INPUT_PULLUP); 
+  pinMode(switchPin, INPUT); 
 }
 
 
@@ -151,13 +153,13 @@ void loop() {
   unsigned long movementTime = millis() - prevTime;
   switchState = digitalRead(switchPin); 
 
-  if(switchState == LOW){
-    digitalWrite(buzzerPin, HIGH);
+  if(switchState == SWITCH_ON){
+    digitalWrite(buzzerPin, SWITCH_OFF);
   }else{
-    digitalWrite(buzzerPin, LOW);
+    digitalWrite(buzzerPin, SWITCH_ON);
   }
 
-  if(switchState == HIGH && pause == false){
+  if(switchState == SWITCH_OFF && pause == false){
     if(movementTime > maxCharDelay){ // must be a space
       morseCode = "|";
       // print_keyboard((char)(' '));
@@ -175,7 +177,7 @@ void loop() {
     prevTime = millis();
     pause = false;
 
-    if (switchState == HIGH) { // If the switch is released
+    if (switchState == SWITCH_OFF) { // If the switch is released
       if(movementTime > maxDahTime){
         // Do something cool. Maybe delete? 
       }else if (movementTime > maxDitTime) { 
