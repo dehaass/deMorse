@@ -2,21 +2,34 @@
 #define MORSE_KEYS_H
 
 class MorseCode {
+
 public:
+
     const int mode;
     const String morse;
-    const int key_code;
-    const int modifier_keys;
-    //const char* comment;
+    const uint8_t key_code;
+    const uint8_t modifier_keys;
 
-    MorseCode(int mode, const String& morse, int key_code, int modifier_keys)
+    MorseCode(int mode, const String& morse, uint8_t key_code, uint8_t modifier_keys)
         : mode(mode), morse(morse), key_code(key_code), modifier_keys(modifier_keys) {}
+};
+
+class SpecialCode {
+
+public:
+
+    const int mode;
+    const String morse;
+    const String name;
+
+    SpecialCode(int mode, const String& morse, const String& name)
+    : mode(mode), morse(morse), name(name) {}
 };
 
 
 // Define the global array of MorseCode objects
 const MorseCode codes[] = {
-{1, ".-", 0x04, 0b0010}, //KEY_A
+{1, ".-", 0x04, 0b0000}, //KEY_A
 {1, "-...", 0x05, 0b0000}, //KEY_B
 {1, "-.-.", 0x06, 0b0000}, //KEY_C
 {1, "-..", 0x07, 0b0000}, //KEY_D
@@ -59,13 +72,50 @@ const MorseCode codes[] = {
 {1, ".--..", 0x51, 0b0000}, //KEY_DOWN
 {1, ".-.-..", 0x50, 0b0000}, //KEY_LEFT
 {1, ".-.-.", 0x4f, 0b0000}, //KEY_RIGHT
-{1, "...-.", 0x08, 0b0000}, //KEY_MOD_LMETA
 {1, "---...-", 0x53, 0b0000}, //KEY_NUMLOCK
 {1, "--.-..", 0x47, 0b0000}, //KEY_SCROLLLOCK
 {1, "-----.", 0x39, 0b0000}, //KEY_CAPSLOCK
 {1, "--....", 0x29, 0b0000}, //KEY_ESC
 {1, "-.-..", 0x49, 0b0000}, //KEY_INSERT
-{1, "-.--..", 0x4c, 0b0000} //KEY_DELETE
+{1, "-.--..", 0x4c, 0b0000}, //KEY_DELETE
+{2, "--.-", 0x08, 0b0000}, //KEY_MOD_LMETA
+{2, "---.", 0x29, 0b0001}, //KEY_ESC, CTRL
+{2, ".-----", 0x3d, 0b0100}, //KEY_F4, ALT
+{2, "-----", 0x29, 0b0100}, //KEY_ESC
+{2, ".....", 0x2b, 0b0100}, //KEY_TAB
+{2, ".-..-", 0x52, 0b0000}, //KEY_UP
+{2, ".--..", 0x51, 0b0000}, //KEY_DOWN
+{2, ".-.-..", 0x50, 0b0000}, //KEY_LEFT
+{2, ".-.-.", 0x4f, 0b0000}, //KEY_RIGHT
+{2, ".....-", 0x4b, 0b0000}, //KEY_PAGEUP
+{2, "...-..", 0x4e, 0b0000}, //KEY_PAGEDOWN
+{2, ".......", 0x4a, 0b0000}, //KEY_HOME
+{2, "...-...", 0x4d, 0b0000}, //KEY_END
+{2, ".-.-", 0x28, 0b0000} //KEY_ENTER
+};
+
+
+const SpecialCode specialCodes[] = {
+{1, "..-..", "repeat"},
+{1, "..-..-", "Hold/Rel"},
+{1, "...-.", "Toggle MODE"},
+{2, "...-.", "Toggle MODE"},
+{2, "-", "m up"},
+{2, "--", "m dwn"},
+{2, "...", "m rt"},
+{2, "..", "m lt"},
+{2, ".", "repeat"},
+{2, "...--", "m slow"},
+{2, "..---", "m fast"},
+{2, ".-", "mb left"},
+{2, ".--", "mb right"},
+{2, "..-", "mb double left"},
+{2, "..--", "mb double right"},
+{2, "-.", "mb click&hold left"},
+{2, "-..", "mb click&hold right"},
+{2, "-.-.", "Ctrl"},
+{2, "--.--", "Alt"},
+{2, "--...-", "Shft"}
 };
 
 #endif // MORSECODE_H

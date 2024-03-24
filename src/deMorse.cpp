@@ -1,18 +1,28 @@
+#define US_KEYBOARD
+
 #include <Arduino.h>
 //#include <Wire.h>
 #include "PluggableUSBHID.h"
-#include "USBKeyboard.h"
-#include "usb_hid_keys.h"
+#include "USBMouseKeyboard.h"
+// #include "USBKeyboard.h"
+//#include "usb_hid_keys.h"
 #include "morse_keys.h"
 
-#define US_KEYBOARD
 
 const int switchPin = 21; 
 int switchState = HIGH;  // Current state of the switch
 int prevSwitchState = HIGH; // Previous state of the switch
 unsigned long prevTime = 0; // Time of the last switch state change
 String morseCode = ""; // String to store the Morse code
+String previousMorse = ""; // History for use with repeat commands and similar
 boolean pause = false;  // flag to indicate no input being decoded
+int MODE = 1;  // Current keyboard layer
+
+int mouse_dist[] = {5, 50, 100};
+int mouse_speed = 1;
+const int num_mouse_speeds = 3;
+
+bool mouse_left_pressed = false;
 
 unsigned long debounceDelay = 30; // Debounce time in milliseconds
 unsigned long maxDitTime = 150; // after this time, it's a dah
@@ -20,18 +30,13 @@ unsigned long maxDahTime = 600; // after this, it's a special control
 unsigned long maxMovementDelay = 300; // after this, it's a new symbol
 unsigned long maxCharDelay = 1600; // after this time, it's a space
 
-USBKeyboard Keyboard;
+USBMouseKeyboard MouseKeyboard;
 
 void setup() {
   Serial.begin(115200); 
   pinMode(switchPin, INPUT_PULLUP); 
 }
 
-
-// Generates the USB Keyboard outputs
-// void print_keyboard(char s){
-//   Keyboard.putc(s);
-// }
 
 // Outputs raw morse to serial terminal
 void print_serial(){
@@ -41,11 +46,86 @@ void print_serial(){
 return;
 }
 
+void make_mouse_faster(bool faster){
+  mouse_speed += faster ? 1 : (-1);
+
+  if(mouse_speed >= num_mouse_speeds){
+    mouse_speed = num_mouse_speeds - 1;
+  }else if(mouse_speed <= 0){
+    mouse_speed = 0;
+  }
+  return;
+}
+
+int HandleSpecialCode(){
+
+  for(const auto& code : specialCodes){
+    if( code.mode == MODE && code.morse.equals(morseCode)){
+      if(code.name.equals("Toggle MODE")){
+        MODE = MODE == 1 ? 2 : 1;
+        Serial.print("Mode is: ");
+        Serial.print(MODE);
+      }else if(code.name.equals("m up")){
+        int dist = (-1)*mouse_dist[mouse_speed];
+        MouseKeyboard.move(0, (-1)*(mouse_dist[mouse_speed]));
+        previousMorse = code.morse;
+      }else if(code.name.equals("m dwn")){
+        MouseKeyboard.move(0, mouse_dist[mouse_speed]);
+        previousMorse = code.morse;
+      }else if(code.name.equals("m rt")){
+        MouseKeyboard.move(mouse_dist[mouse_speed], 0);
+        previousMorse = code.morse;
+      }else if(code.name.equals("m lt")){
+        MouseKeyboard.move((-1)*mouse_dist[mouse_speed], 0);
+        previousMorse = code.morse;
+      }else if(code.name.equals("repeat")){
+        morseCode = previousMorse;
+        HandleSpecialCode();
+
+      }else if(code.name.equals("mb left")){
+        MouseKeyboard.click(MOUSE_LEFT);
+        previousMorse = code.morse;
+      }else if(code.name.equals("mb right")){
+        MouseKeyboard.click(MOUSE_RIGHT);
+        previousMorse = code.morse;
+      }else if(code.name.equals("mb double left")){
+        MouseKeyboard.doubleClick();
+        previousMorse = code.morse;
+      }else if(code.name.equals("m slow")){
+        make_mouse_faster(false);
+        previousMorse = code.morse;
+      }else if(code.name.equals("m fast")){
+        make_mouse_faster(true);
+        previousMorse = code.morse;
+      }else if(code.name.equals("mb click&hold left")){
+        if(mouse_left_pressed){
+          MouseKeyboard.release(MOUSE_LEFT);
+          mouse_left_pressed = false;
+        }else{
+          MouseKeyboard.press(MOUSE_LEFT);
+          mouse_left_pressed = true;
+        }
+        previousMorse = code.morse;
+      }else{
+        return false;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
 void DecodeSymbol(){
 
+  if(HandleSpecialCode()){
+    print_serial();
+    morseCode = "";
+    return;
+  }
+
   for(const auto& code : codes){
-    if(code.morse.equals(morseCode)){
-      Keyboard.key_code_raw(code.key_code, code.modifier_keys);
+    if( code.mode == MODE && code.morse.equals(morseCode)){
+      MouseKeyboard.key_code_raw(code.key_code, code.modifier_keys);
       print_serial();
       morseCode = "";
       return;
@@ -57,52 +137,6 @@ void DecodeSymbol(){
   return;
 }
 
-// convert raw morse to ASCII
-// void OBSDecodeSymbol() {
-//   static String letters[] = {
-//     ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-",
-//     ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", "E"
-//   };
-//   static String numbers[] = {
-//     "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----.", "E"
-//   };
-//   static String special[] = {
-//     "....."
-//   };
-
-//   int i = 0;
-//   while (letters[i] != "E") {
-//     if (letters[i] == morseCode) {
-//       print_keyboard((char)('A') + i);
-//       print_serial();
-//       break;
-//     }
-//     i++;
-//   }
-
-//   i=0;
-//   while(numbers[i] != "E"){
-//     if (numbers[i] == morseCode) {
-//       print_keyboard((char)('0') + i);
-//       print_serial();
-//       break;
-//     }
-//     i++;
-//   }
-
-//   if(special[0] == morseCode){
-//     Keyboard.key_code_raw(KEY_TAB, KEY_ALT);
-//   }
-
-//   if (numbers[i] == "E") {
-//     //print_local(morseCode);
-//     // Serial.print(morseCode);
-//     print_serial();
-//   }
-//   morseCode = "";
-//   return;
-// }
-
 
 void loop() {
   unsigned long movementTime = millis() - prevTime;
@@ -112,7 +146,7 @@ void loop() {
     if(movementTime > maxCharDelay){ // must be a space
       morseCode = "|";
       // print_keyboard((char)(' '));
-      Keyboard.key_code(KEY_SPACE);
+      // MouseKeyboard.key_code_raw(0x2c, 0);
       DecodeSymbol();
       pause = true;
     }else if(movementTime > maxMovementDelay && morseCode != ""){ // character is finished
