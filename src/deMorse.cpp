@@ -41,7 +41,7 @@ bool mouse_left_pressed = false;
 
 const unsigned long standard_dit = 120;
 const unsigned long debounceDelay = 30; // Debounce time in milliseconds
-const unsigned long maxDitTime = standard_dit*1.5; // after this time, it's a dah
+const unsigned long maxDitTime = standard_dit*1.4; // after this time, it's a dah
 const unsigned long maxDahTime = standard_dit*3*1.2; // after this, it's a special control
 const unsigned long maxMovementDelay = maxDitTime; // after this, it's a new symbol (dit or dah)
 const unsigned long maxCharDelay = maxDahTime; // after this time, it's a space
@@ -171,6 +171,19 @@ void loop() {
   // }
 
 // Fix the timing issue!!
+
+  if(switchState == SWITCH_OFF && pause == false && switchState == prevSwitchState){
+    if(movementTime > maxCharDelay){ // must be a space
+      morseCode = "|";
+      // print_keyboard((char)(' '));
+      // MouseKeyboard.key_code_raw(0x2c, 0);
+      DecodeSymbol();
+      pause = true;
+    }else if(movementTime > maxMovementDelay && morseCode != ""){ // character is finished
+      DecodeSymbol();
+      //prevTime = millis(); 
+    }
+  }
   
   if (switchState != prevSwitchState && movementTime > debounceDelay) { // Check for switch state change and debounce
     prevSwitchState = switchState; 
@@ -187,18 +200,4 @@ void loop() {
       }
     }
   }
-
-  if(switchState == SWITCH_OFF && pause == false && switchState == prevSwitchState){
-    if(movementTime > maxCharDelay){ // must be a space
-      morseCode = "|";
-      // print_keyboard((char)(' '));
-      // MouseKeyboard.key_code_raw(0x2c, 0);
-      DecodeSymbol();
-      pause = true;
-    }else if(movementTime > maxMovementDelay && morseCode != ""){ // character is finished
-      DecodeSymbol();
-      //prevTime = millis(); 
-    }
-  }
-
 }
