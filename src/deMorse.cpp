@@ -14,9 +14,14 @@ Stuart de Haas
 //#include "usb_hid_keys.h"
 #include "morse_keys.h"
 
-
+#if BOARD_ID == 1
 const int switchPin = 21; 
-const int buzzerPin = 20;
+#endif
+#if BOARD_ID == 2
+const int switchPin = 2;
+#endif
+
+// const int buzzerPin = 20;
 int switchState = HIGH;  // Current state of the switch
 int prevSwitchState = HIGH; // Previous state of the switch
 unsigned long prevTime = 0; // Time of the last switch state change
@@ -54,7 +59,12 @@ USBMouseKeyboard MouseKeyboard;
 
 void setup() {
   Serial.begin(115200); 
+  #if BOARD_ID == 1
   pinMode(switchPin, INPUT); 
+  #endif
+  #if BOARD_ID == 2
+  pinMode(switchPin, INPUT_PULLUP);
+  #endif
 }
 
 

@@ -1,6 +1,8 @@
 # deMorse
 A PlatformIO project using a Raspberry Pi Pico and a morse key (or any switch) to emulate a full keyboard and mouse. The project started out as an interesting way to learn and practise morse but accidentally turned into a project with accessibility applications. 
 
+The roadmap includes adding support for a gamepad mode. This will be to connect to a RC Plane remote. Very different functionality but will be nice to share hardware. 
+
 Many of the morse commands come from a project designed for a quadriplegic: https://makoa.org/jlubin/morsecode.htm
 
 ## TODO
